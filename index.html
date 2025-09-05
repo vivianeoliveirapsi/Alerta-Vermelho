@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Auxiliar de Ansiedade — Sintomas, Situações e Estratégias</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card-w:150px; --card-h:100px;
+      --c-sinais:#ffd6d6; --c-situacoes:#d6f0ff; --c-estrategias:#e6ffd6;
+      --accent:#334155;
+    }
+    body{font-family:Inter,system-ui,Arial;margin:0;background:var(--bg);color:#111;scroll-behavior:smooth}
+    header{padding:18px 24px;background:#fff;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    header h1{font-size:18px;margin:0}
+    nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+    nav a{padding:6px 10px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-size:13px}
+    .container{padding:18px}
+    .boards{display:flex;flex-direction:column;gap:18px}
+    .board{background:#fff;padding:12px;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+    .board h2{margin:0 0 8px 0;font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:10px}
+    .card{width:var(--card-w);height:var(--card-h);cursor:pointer;align-self:start;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;padding:8px;text-align:center;border:2px solid transparent;transition:border .3s}
+    .card.sinais{background:var(--c-sinais)}
+    .card.situacoes{background:var(--c-situacoes)}
+    .card.estrategias{background:var(--c-estrategias)}
+    .card.selected{border:2px solid red}
+    aside{background:#fff;padding:12px;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.05);margin-top:18px}
+    ol{padding-left:18px;margin:8px 0}
+    button{padding:8px 10px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .muted{opacity:.7;font-size:13px}
+    footer{padding:14px 24px;text-align:center;font-size:13px;color:#6b7280}
+    input[type=text]{padding:8px;border-radius:8px;border:1px solid #e6e9ef}
+    .legend{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .legend span{display:inline-flex;gap:6px;align-items:center}
+    .swatch{width:18px;height:12px;border-radius:4px}
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <h1>Auxiliar de Ansiedade — Identificação e Enfrentamento</h1>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label class="muted">Paciente:</label>
+        <input id="patientName" type="text" placeholder="Nome do paciente (ex: Pedro)" />
+        <button id="downloadBtn">Baixar frases reveladas</button>
+        <button id="shuffleBtn">Embaralhar & Reiniciar</button>
+      </div>
+    </div>
+    <nav>
+      <a href="#board-sinais">Ir para Sinais</a>
+      <a href="#board-situacoes">Ir para Situações</a>
+      <a href="#board-estrategias">Ir para Estratégias</a>
+      <a href="#revealedList">Ir para Lista</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="boards">
+      <div class="board" id="board-sinais">
+        <h2 id="title-sinais">Sinais (30) — escolha sintomas relacionados às suas crises</h2>
+        <div class="grid" id="sinaisGrid"></div>
+      </div>
+
+      <div class="board" id="board-situacoes">
+        <h2 id="title-situacoes">Situações (50) — só habilitadas depois de escolher ao menos 1 sinal</h2>
+        <div class="grid" id="situacoesGrid" style="opacity:.5;pointer-events:none"></div>
+      </div>
+
+      <div class="board" id="board-estrategias">
+        <h2 id="title-estrategias">Estratégias (30) — habilitadas depois de escolher situações</h2>
+        <div class="grid" id="estrategiasGrid" style="opacity:.5;pointer-events:none"></div>
+      </div>
+
+      <aside>
+            <h3>Frases reveladas</h3>
+            <div id="revealedList">
+                <h4>Sinais</h4>
+                <ol id="revealedSinais"></ol>
+
+                <h4>Situações</h4>
+                <ol id="revealedSituacoes"></ol>
+
+                <h4>Estratégias</h4>
+                <ol id="revealedEstrategias"></ol>
+            </div>
+            <div class="controls">
+                <button id="clearBtn">Limpar lista</button>
+                <button id="exportBtn">Exportar como .txt</button>
+            </div>
+            <p class="muted">Fluxo: escolha sinais → escolha situações relacionadas → analise estratégias com potencial de ajuda.</p>
+            <div class="legend">
+                <span><span class="swatch" style="background:var(--c-sinais);border:1px solid #f2b0b0"></span> Sinais</span>
+                <span><span class="swatch" style="background:var(--c-situacoes);border:1px solid #9fc9e8"></span> Situações</span>
+                <span><span class="swatch" style="background:var(--c-estrategias);border:1px solid #bfe8a8"></span> Estratégias</span>
+            </div>
+        </aside>
+
+    </div>
+  </div>
+
+  <footer>
+    © 2025 Viviane Oliveira | CRP 11/22526. Todos os direitos reservados.
+  </footer>
+
+  <script>
+    const sinaisGrid=document.getElementById('sinaisGrid');
+    const situacoesGrid=document.getElementById('situacoesGrid');
+    const estrategiasGrid=document.getElementById('estrategiasGrid');
+    const revealedList=document.getElementById('revealedList');
+
+    const titleSinais=document.getElementById('title-sinais');
+    const titleSituacoes=document.getElementById('title-situacoes');
+    const titleEstrategias=document.getElementById('title-estrategias');
+
+    let revealed=[];
+
+    // Listas de exemplo (substitua pelos textos reais que desejar)
+    const sinaisList=[
+      "Coração acelerado","Falta de ar","Tremores","Suor excessivo","Náusea",
+      "Tensão muscular","Mãos frias","Boca seca","Sensação de desmaio","Insônia",
+      "Aperto no peito","Agitação","Sensação de perigo iminente","Medo de perder o controle","Calafrios",
+      "Formigamento","Inquietação","Dificuldade de concentração","Pensamentos repetitivos","Medo de morrer",
+      "Fadiga","Dor de cabeça","Choro fácil","Sensação de vazio","Mente acelerada",
+      "Irritabilidade","Medo de julgamento","Medo de errar","Hipervigilância","Pensamentos catastróficos"
+    ];
+
+    const situacoesList=[
+      "Falar em público","Reuniões de trabalho","Apresentações","Sair sozinho","Ambientes lotados",
+      "Trânsito","Esperar resultados médicos","Conflitos familiares","Cobranças no trabalho","Viagens",
+      "Usar transporte público","Fazer provas","Ser observado","Primeiros encontros","Atender telefone",
+      "Ir ao banco","Reuniões sociais","Visitar lugares desconhecidos","Falar com autoridade","Mudanças na rotina",
+      "Responsabilidades financeiras","Lidar com críticas","Entrevistas de emprego","Prazo apertado","Chegar atrasado",
+      "Hospitais","Comprar sozinho","Pedir ajuda","Tomar decisões","Silêncio prolongado",
+      "Ficar sozinho em casa","Dormir fora","Conflito conjugal","Esquecer compromissos","Participar de festas",
+      "Apresentar-se em público","Ser avaliado","Início de semana","Fim de semana","Mudança de casa",
+      "Cobrança de metas","Conversar com desconhecidos","Exames médicos","Visitas inesperadas","Planejar viagem",
+      "Dirigir em rodovia","Ficar preso em elevador","Discussões","Situações novas","Sair de casa"
+    ];
+
+    const estrategiasList=[
+      "Respiração profunda","Exercício físico","Meditação","Mindfulness","Anotar pensamentos",
+      "Ouvir música relaxante","Tomar chá calmante","Técnica de grounding","Alongamento","Relaxamento muscular",
+      "Visualização positiva","Ler um livro","Caminhar ao ar livre","Limitar cafeína","Tomar banho morno",
+      "Conversar com amigo","Terapia cognitiva","Diário emocional","Aceitar emoções","Organizar rotina",
+      "Dormir bem","Praticar gratidão","Autoafirmações positivas","Focar no presente","Planejamento prévio",
+      "Dividir tarefas","Estabelecer prioridades","Pausas durante o dia","Evitar excesso de notícias","Contato com natureza"
+    ];
+
+    function createCardsFromList(container, count=30, list=[], cat){
+      container.innerHTML="";
+      list.slice(0,count).forEach(text=>{
+        const card=document.createElement('div');
+        card.className=`card ${cat}`;
+        card.textContent=text;
+        card.dataset.text=text;
+        card.addEventListener('click',()=>selectCard(card,cat));
+        container.appendChild(card);
+      });
+    }
+
+    function selectCard(card,cat){
+      if(card.classList.contains('selected')){
+        card.classList.remove('selected');
+        revealed=revealed.filter(txt=>txt!==card.dataset.text);
+      } else {
+        card.classList.add('selected');
+        revealed.push(card.dataset.text);
+        if(cat==='sinais'){
+          situacoesGrid.style.opacity='1';
+          situacoesGrid.style.pointerEvents='auto';
+        }
+        if(cat==='situacoes'){
+          estrategiasGrid.style.opacity='1';
+          estrategiasGrid.style.pointerEvents='auto';
+        }
+      }
+      updateList();
+      updateCounters();
+    }
+
+    function updateList(){
+        // Limpar listas
+        document.getElementById('revealedSinais').innerHTML='';
+        document.getElementById('revealedSituacoes').innerHTML='';
+        document.getElementById('revealedEstrategias').innerHTML='';
+
+        // Preencher cada categoria
+        revealed.forEach(txt=>{
+            const li=document.createElement('li');
+            li.textContent=txt;
+
+            if(sinaisList.includes(txt)){
+            document.getElementById('revealedSinais').appendChild(li);
+            }
+            else if(situacoesList.includes(txt)){
+            document.getElementById('revealedSituacoes').appendChild(li);
+            }
+            else if(estrategiasList.includes(txt)){
+            document.getElementById('revealedEstrategias').appendChild(li);
+            }
+        });
+    }
+
+
+    function updateCounters(){
+      const sinaisSel=document.querySelectorAll('.card.sinais.selected').length;
+      const situacoesSel=document.querySelectorAll('.card.situacoes.selected').length;
+      const estrategiasSel=document.querySelectorAll('.card.estrategias.selected').length;
+      titleSinais.textContent=`Sinais (30) — selecionados: ${sinaisSel}`;
+      titleSituacoes.textContent=`Situações (50) — selecionados: ${situacoesSel}`;
+      titleEstrategias.textContent=`Estratégias (30) — selecionados: ${estrategiasSel}`;
+    }
+
+    function shuffleAll(){
+      revealed=[];updateList();
+      situacoesGrid.style.opacity='.5';situacoesGrid.style.pointerEvents='none';
+      estrategiasGrid.style.opacity='.5';estrategiasGrid.style.pointerEvents='none';
+      createCardsFromList(sinaisGrid,30,sinaisList,'sinais');
+      createCardsFromList(situacoesGrid,50,situacoesList,'situacoes');
+      createCardsFromList(estrategiasGrid,30,estrategiasList,'estrategias');
+      updateCounters();
+    }
+
+    document.getElementById('clearBtn').onclick=()=>{
+      revealed=[];updateList();document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));updateCounters();
+    };
+
+    document.getElementById('exportBtn').onclick = exportTxt;
+
+    function exportTxt(){
+        let content = '';
+
+        // Sinais
+        const sinaisSel = revealed.filter(txt => sinaisList.includes(txt));
+        if(sinaisSel.length){
+            content += 'Sinais:\n';
+            sinaisSel.forEach(txt => content += '- ' + txt + '\n');
+            content += '\n';
+        }
+
+        // Situações
+        const situacoesSel = revealed.filter(txt => situacoesList.includes(txt));
+        if(situacoesSel.length){
+            content += 'Situações:\n';
+            situacoesSel.forEach(txt => content += '- ' + txt + '\n');
+            content += '\n';
+        }
+
+        // Estratégias
+        const estrategiasSel = revealed.filter(txt => estrategiasList.includes(txt));
+        if(estrategiasSel.length){
+            content += 'Estratégias:\n';
+            estrategiasSel.forEach(txt => content += '- ' + txt + '\n');
+        }
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const name = document.getElementById('patientName').value || 'Paciente';
+        const date = new Date().toISOString().slice(0,10);
+        a.download = `${name}_${date}.txt`;
+        a.href = url;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('downloadBtn').onclick = exportTxt;
+
+    document.getElementById('shuffleBtn').onclick=shuffleAll;
+
+    shuffleAll();
+  </script>
+</body>
+</html>
